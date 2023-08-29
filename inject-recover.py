@@ -1,4 +1,8 @@
-#MOST UP TO DATE VERSION, changed period range###
+#Runs an injection recovery for a given light curve. Each iteration injects a different random period and planet radius, performs a periodogram analysis to try and find the period, 
+#and outputs a 0 or 1 depending on whether the correct period was recovered or not. It is output into a pandas table column as ['recover?'].
+#####normalized_corrected: a processed light curve that will be used for the injection recovery
+#####stellar_radius: the radius of the star in solar radii
+#####trials: number of injected planets to try for the injected recovery. Recommend more than 1000 since the statistics are a bit iffy when a lower value is selected
 
 import numpy as np
 import pandas as pd
