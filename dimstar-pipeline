@@ -103,32 +103,21 @@ for index, row in sagstreammore.iterrows():
     print(f'beginning star {tic}, Tmag={Tmag}')
     try:
         print('checking flux of source')
-        star = eleanor.Source(tic=tic, sector=sector)
-        #star = eleanor.Source(tic=ticnum)
+        star = eleanor.multi_sectors(sectors='all',tic=tic)
+        data = []
+        plot_fmt = ['k.', 'r.']
 
-        print('Found TIC {0} (Gaia {1}), with TESS magnitude {2}, RA {3}, and Dec {4}'
-             .format(star.tic, star.gaia, star.tess_mag, star.coords[0], star.coords[1]))
+        for s in star:   
+            datum =  eleanor.TargetData(s, height=15, width=15, bkg_size=31, do_psf=False, do_pca=True, regressors='corner')
+            q = datum.quality == 0
+            data.append(datum.to_lightkurve())
 
-        #data = eleanor.TargetData(star, height=15, width=15, bkg_size=31, do_psf=False, do_pca=True, regressors='corner')
-        data = eleanor.TargetData(star, height=15, width=15, bkg_size=31, aperture_mode='small', do_psf=False, do_pca=True, regressors='corner')
-        q = data.quality == 0
-        
-        fluxval = np.median(data.raw_flux)
+        fluxval = np.median(datum.raw_flux)
         print(f'flux founds to be {fluxval}')
         
         #see if the flux is <95, which is close to the estimated flux of a 15.5mag star, if true, continue analysis
         if fluxval<95:
             print('continuing with eleanor')
-            star = eleanor.multi_sectors(sectors='all',tic=tic)
-            #star = eleanor.Source(tic=ticnum)
-
-            data = []
-            plot_fmt = ['k.', 'r.']
-
-            for s in star:   
-                datum =  eleanor.TargetData(s, height=15, width=15, bkg_size=31, do_psf=False, do_pca=True, regressors='corner')
-                q = datum.quality == 0
-                data.append(datum.to_lightkurve())
 
             collect = lk.LightCurveCollection(data)
 
