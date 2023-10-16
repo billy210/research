@@ -86,7 +86,7 @@ def Tt(period, impact_param, scaled_semimajor_axis, scaled_planet_radius):
 
 
 sagstreammore = pd.read_csv('/blue/jasondittmann/wschap/streams/sagittarius/earlytglcscatter-slurm-bgestimate.csv', sep=',', header = 0)
-sagstreammore = sagstreammore.head(2)
+sagstreammore = sagstreammore.head(1)
 surveysize = sagstreammore.shape[0]
 outtable = pd.DataFrame()
 t0 = time.time()
@@ -138,7 +138,6 @@ for index, row in sagstreammore.iterrows():
 
             
             lcbin.to_fits(path=f'/blue/jasondittmann/wschap/streams/sagittarius/cleanedlk/{tic}-reduced_lc.fits', overwrite=True)
-            #lcbin.scatter()
             sagstreammore.loc[index,'rawflux'] = fluxval
             
             medstdbin = np.median(np.abs(lcbin['flux']-np.median(lcbin['flux'])))
@@ -202,7 +201,6 @@ for index, row in sagstreammore.iterrows():
                 ax1.set_title(f'Light Curve of TIC {tic}')
                 ax2 = periodogram.plot(ax=axes[0,1],color='black')
                 ax2.set_title(f'Periodigram of TIC {tic}')
-                #plt.savefig(f'/blue/sarahballard/wschap/ariadne-results/mpfigures/{ticnum}.pdf')
 
                 planet_b_period = periodogram.period_at_max_power
                 planet_b_t0 = periodogram.transit_time_at_max_power
@@ -241,7 +239,7 @@ for index, row in sagstreammore.iterrows():
             #find the calculate transit duration
             calcduration = planet_b_dur
             calhrduration = planet_b_dur.value*24*u.hr
-            #print(f'calculated duration is {calcduration}, or {calhrduration}')
+            print(f'calculated duration is {calcduration}, or {calhrduration}')
 
 
             #now lets find the expected duration for a circular, edge on transit. If its longer than we calculate were good
@@ -254,16 +252,18 @@ for index, row in sagstreammore.iterrows():
             scaled_planet_radius = np.sqrt(planet_b_model['flux'].min()) #Rp/R*
 
             expectduration = Tt(periodcalc, impact_param, semimaj, scaled_planet_radius) #find expected duration
-            expectdurhour = expectduration.to(u.hr)
+            expectdurhour = expectduration.value*24*u.hr
 
             #print(f'Expected  duration is {expectduration}, or {expectdurhour}')
             print(f'Expected duration in hrs {expectdurhour}')
             print(f'Calculated duration in hrs {calhrduration}')
 
-            if expectduration > calcduration:
+            if expectduration.value > calcduration.value:
                 print(f'this could work')
+                sagstreammore.loc[index,'dur_vet'] = 1
             else:
                 print(f'this is a bit large')
+                sagstreammore.loc[index,'dur_vet'] = 0
             
             
             
@@ -402,7 +402,7 @@ for index, row in sagstreammore.iterrows():
             #find the calculate transit duration
             calcduration = planet_b_dur
             calhrduration = planet_b_dur.value*24*u.hr
-            #print(f'calculated duration is {calcduration}, or {calhrduration}')
+            print(f'calculated duration is {calcduration}, or {calhrduration}')
 
 
             #now lets find the expected duration for a circular, edge on transit. If its longer than we calculate were good
@@ -415,16 +415,18 @@ for index, row in sagstreammore.iterrows():
             scaled_planet_radius = np.sqrt(planet_b_model['flux'].min()) #Rp/R*
 
             expectduration = Tt(periodcalc, impact_param, semimaj, scaled_planet_radius) #find expected duration
-            expectdurhour = expectduration.to(u.hr)
+            expectdurhour = expectduration.value*24*u.hr
 
             #print(f'Expected  duration is {expectduration}, or {expectdurhour}')
             print(f'Expected duration in hrs {expectdurhour}')
             print(f'Calculated duration in hrs {calhrduration}')
 
-            if expectduration > calcduration:
+            if expectduration.value > calcduration.value:
                 print(f'this could work')
+                sagstreammore.loc[index,'dur_vet'] = 1
             else:
                 print(f'this is a bit large')
+                sagstreammore.loc[index,'dur_vet'] = 0
     
     #if all else fails, just move on to the next star for now, troubleshoot this at a later time 
     except:
