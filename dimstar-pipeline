@@ -86,7 +86,7 @@ def Tt(period, impact_param, scaled_semimajor_axis, scaled_planet_radius):
 
 
 sagstreammore = pd.read_csv('/blue/jasondittmann/wschap/streams/sagittarius/earlytglcscatter-slurm-bgestimate.csv', sep=',', header = 0)
-sagstreammore = sagstreammore.head(1)
+sagstreammore = sagstreammore.head(3)
 surveysize = sagstreammore.shape[0]
 outtable = pd.DataFrame()
 t0 = time.time()
@@ -121,7 +121,7 @@ for index, row in sagstreammore.iterrows():
 
             collect = lk.LightCurveCollection(data)
 
-            lcbin = collect.stitch(lambda x: x.normalize().remove_outliers(sigma=6).bin(time_bin_size=binsizedays).remove_nans())#
+            lcbin = collect.stitch(lambda x: x.normalize().bin(time_bin_size=binsizedays).remove_outliers(sigma=6).remove_nans())#
 
 
 
@@ -130,7 +130,7 @@ for index, row in sagstreammore.iterrows():
             sagstreammore.loc[index,'rawflux'] = fluxval
             
             medstdbin = np.median(np.abs(lcbin['flux']-np.median(lcbin['flux'])))
-            print(f'scatter = {medstdbin}')
+            #print(f'scatter = {medstdbin}')
             sagstreammore.loc[index,'medstdbin'] = medstdbin
             
             
@@ -163,9 +163,6 @@ for index, row in sagstreammore.iterrows():
             ax4 = lcbin.fold(planet_b_period, planet_b_t0).scatter(ax=axes[1,1],s=12)
             planet_b_model.fold(planet_b_period, planet_b_t0).plot(ax=axes[1,1], c='r', lw=2)
             ax4.set_xlim(-0.2, 0.2);
-            
-            fig.tight_layout()
-            plt.show()
 
 
 
@@ -213,22 +210,30 @@ for index, row in sagstreammore.iterrows():
                 planet_b_model.fold(planet_b_period, planet_b_t0).plot(ax=axes[1,1], c='r', lw=2)
                 ax4.set_xlim(-0.2, 0.2);
 
-                print(f'period of {planet_b_period}')
-                print(f'transit duration of {planet_b_dur}')
+                #print(f'period of {planet_b_period}')
+                #print(f'transit duration of {planet_b_dur}')
 
                 fig.tight_layout()
-                plt.show()
+                plt.savefig(f'/blue/jasondittmann/wschap/streams/sagittarius/cleanedlk/{tic}-reduced_lc.jpg',bbox_inches='tight')
+                progress=[(index+1)/surveysize]
+                outtable['progress']=progress
+                outtable.to_csv('/blue/jasondittmann/wschap/streams/sagittarius/cleanedlk/progress.csv')
 
 
             else:
                 print(f'period of {planet_b_period} not TESS period')
+                fig.tight_layout()
+                plt.savefig(f'/blue/jasondittmann/wschap/streams/sagittarius/cleanedlk/{tic}-reduced_lc.jpg',bbox_inches='tight')
+                progress=[(index+1)/surveysize]
+                outtable['progress']=progress
+                outtable.to_csv('/blue/jasondittmann/wschap/streams/sagittarius/cleanedlk/progress.csv')
 
 
 
             #find the calculate transit duration
             calcduration = planet_b_dur
             calhrduration = planet_b_dur.value*24*u.hr
-            print(f'calculated duration is {calcduration}, or {calhrduration}')
+            #print(f'calculated duration is {calcduration}, or {calhrduration}')
 
 
             #now lets find the expected duration for a circular, edge on transit. If its longer than we calculate were good
@@ -244,8 +249,10 @@ for index, row in sagstreammore.iterrows():
             expectdurhour = expectduration.value*24*u.hr
 
             #print(f'Expected  duration is {expectduration}, or {expectdurhour}')
-            print(f'Expected duration in hrs {expectdurhour}')
-            print(f'Calculated duration in hrs {calhrduration}')
+            #print(f'Expected duration in hrs {expectdurhour}')
+            #print(f'Calculated duration in hrs {calhrduration}')
+            sagstreammore.loc[index,'expected_dur_hr'] = expectdurhour.value
+            sagstreammore.loc[index,'calc_dur_hr'] = calhrduration.value
 
             if expectduration.value > calcduration.value:
                 print(f'this could work')
@@ -287,14 +294,14 @@ for index, row in sagstreammore.iterrows():
             mastfile = fits.open(filelocation[0])
             lcmast['flux_err'] = mastfile[1].header['CPSF_ERR'] #lightkurve currently cant grab the errors, so I add them to the file manually here
 
-            lcbin = lcmast.remove_outliers(sigma=6).bin(time_bin_size=binsizedays).remove_nans() #bin the data so all sectors agree
+            lcbin = lcmast.bin(time_bin_size=binsizedays).remove_outliers(sigma=6).remove_nans() #bin the data so all sectors agree
             
             lcbin.to_fits(path=f'/blue/jasondittmann/wschap/streams/sagittarius/cleanedlk/{tic}-reduced_lc.fits', overwrite=True)
             
             #lcbin.scatter()
 
             medstdbin = np.median(np.abs(lcbin['flux']-np.median(lcbin['flux'])))
-            print(f'scatter = {medstdbin}')
+            #print(f'scatter = {medstdbin}')
             sagstreammore.loc[index,'medstdbin'] = medstdbin #save the result here
             
             
@@ -376,22 +383,30 @@ for index, row in sagstreammore.iterrows():
                 planet_b_model.fold(planet_b_period, planet_b_t0).plot(ax=axes[1,1], c='r', lw=2)
                 ax4.set_xlim(-0.2, 0.2);
 
-                print(f'period of {planet_b_period}')
-                print(f'transit duration of {planet_b_dur}')
+                #print(f'period of {planet_b_period}')
+                #print(f'transit duration of {planet_b_dur}')
 
                 fig.tight_layout()
-                plt.show()
+                plt.savefig(f'/blue/jasondittmann/wschap/streams/sagittarius/cleanedlk/{tic}-reduced_lc.jpg',bbox_inches='tight')
+                progress=[(index+1)/surveysize]
+                outtable['progress']=progress
+                outtable.to_csv('/blue/jasondittmann/wschap/streams/sagittarius/cleanedlk/progress.csv')
 
 
             else:
                 print(f'period of {planet_b_period} not TESS period')
+                fig.tight_layout()
+                plt.savefig(f'/blue/jasondittmann/wschap/streams/sagittarius/cleanedlk/{tic}-reduced_lc.jpg',bbox_inches='tight')
+                progress=[(index+1)/surveysize]
+                outtable['progress']=progress
+                outtable.to_csv('/blue/jasondittmann/wschap/streams/sagittarius/cleanedlk/progress.csv')
 
 
 
             #find the calculate transit duration
             calcduration = planet_b_dur
             calhrduration = planet_b_dur.value*24*u.hr
-            print(f'calculated duration is {calcduration}, or {calhrduration}')
+            #print(f'calculated duration is {calcduration}, or {calhrduration}')
 
 
             #now lets find the expected duration for a circular, edge on transit. If its longer than we calculate were good
@@ -407,8 +422,10 @@ for index, row in sagstreammore.iterrows():
             expectdurhour = expectduration.value*24*u.hr
 
             #print(f'Expected  duration is {expectduration}, or {expectdurhour}')
-            print(f'Expected duration in hrs {expectdurhour}')
-            print(f'Calculated duration in hrs {calhrduration}')
+            #print(f'Expected duration in hrs {expectdurhour}')
+            sagstreammore.loc[index,'expected_dur_hr'] = expectdurhour.value
+            #print(f'Calculated duration in hrs {calhrduration}')
+            sagstreammore.loc[index,'calc_dur_hr'] = calhrduration.value
 
             if expectduration.value > calcduration.value:
                 print(f'this could work')
