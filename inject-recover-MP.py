@@ -42,8 +42,8 @@ def injectplanet(arg):
     #lc_injected.scatter(ax=axs[0],s=25,color='r',label='injected transit signal')
     #normalized_corrected.scatter(ax=axs[0],s=25)
 
-    period_grid = np.linspace(0.4, 18, 1000)
-    bls = lc_injected.to_periodogram(method='bls', period=period_grid, frequency_factor=600);
+    period_grid = np.linspace(0.4, 18, 50000)
+    bls = lc_injected.to_periodogram(method='bls', period=period_grid, frequency_factor=500);
     #bls.plot(ax=axs[1],label=f'best p = {bls.period_at_max_power:.2f}');
     planet_b_period = bls.period_at_max_power
     planet_b_t0 = bls.transit_time_at_max_power
@@ -95,7 +95,7 @@ def injectplanet(arg):
 
 
 
-def vary_paramsmult(func, normalized_corrected, df, stellar_radius=1.325, trials=1000, num_processes=1):
+def vary_paramsmult(func, normalized_corrected, df, stellar_radius=1.325, trials=10000, num_processes=1):
     
     t0 = time.time()
     with mp.Pool(num_processes,maxtasksperchild=10) as pool:
@@ -133,4 +133,4 @@ def vary_paramsmult(func, normalized_corrected, df, stellar_radius=1.325, trials
 
 
 output_table2 = pd.DataFrame()
-output_table2 = vary_paramsmult(injectplanet,lcbin, output_table2, stellar_radius=0.994, trials=5000, num_processes=32)
+output_table2 = vary_paramsmult(injectplanet,lcbin, output_table2, stellar_radius=0.994, trials=10000, num_processes=32)
