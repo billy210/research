@@ -1,8 +1,10 @@
-#Same as the previous injection recovery program, but now involves multiprocessing. While batman has its own multithread, that wasnt our setback.
-# By updating this code and running it on 32 cores, it took the runtime for 5000 trials from 10.5 mins to just under 0.71 mins. Substaintial as we move forward. 
-
-def injectplanet(arg):
+#######################################################################################
+#version with tess period removal has unknown bugs, proceeding with this for now#######
+#######################################################################################
+def injectplanettest(arg):
     idx,row = arg
+    #binned_lc.scatter()
+    #normalized_corrected = lcbin
     depth = row['depths']
     midtime = row['midtimes']
     period=  row['periods']
@@ -12,7 +14,6 @@ def injectplanet(arg):
     params.per =  row['periods']                 #orbital period
     params.rp = row['depths']                     #planet radius (in units of stellar radii)
     stellar_radius = row['stellar_radius']
-    normalized_corrected = lcbin
     semimaj = ((((7.496*(10**(-6)))*(period**2))**(1/3))*215.032)/stellar_radius #calc a based on period, and in terms of host star radius
     params.a = semimaj                    #semi-major axis (in units of stellar radii)
     params.inc = 89.                      #orbital inclination (in degrees)
@@ -22,7 +23,7 @@ def injectplanet(arg):
     params.limb_dark = "quadratic"       #limb darkening model
 
     # Define the times at which to evaluate the fake transit
-    t=normalized_corrected.time.value
+    t=binned_lc.time.value
 
     # Create the batman transit model
     m = batman.TransitModel(params, t)
@@ -32,25 +33,25 @@ def injectplanet(arg):
 
 
     # Inject the fake transit into the real data
-    injected_flux = normalized_corrected.flux.value + injected_model - 1.0
+    injected_flux = binned_lc.flux.value + injected_model - 1.0
 
 
-    lc_injected=normalized_corrected.copy()
+    lc_injected=binned_lc.copy()
     lc_injected.flux = injected_flux
     #fig,axs=plt.subplots(3,1,figsize=(10,10))
     planetrad = depth*stellar_radius * 9.73116 #convert the solar radii to jupiter radii
     #lc_injected.scatter(ax=axs[0],s=25,color='r',label='injected transit signal')
     #normalized_corrected.scatter(ax=axs[0],s=25)
-
-    period_grid = np.linspace(0.4, 18, 50000)
-    bls = lc_injected.to_periodogram(method='bls', period=period_grid, frequency_factor=500);
+    
+    period_grid = np.linspace(0.4, 18, 10000)
+    bls = lc_injected.to_periodogram(method='bls', period=period_grid, frequency_factor=700);
     #bls.plot(ax=axs[1],label=f'best p = {bls.period_at_max_power:.2f}');
     planet_b_period = bls.period_at_max_power
     planet_b_t0 = bls.transit_time_at_max_power
     planet_b_dur = bls.duration_at_max_power
     #lc_injected.fold(period=planet_b_period, epoch_time=planet_b_t0).scatter(ax=axs[2],label='')
 
-    blsorig = normalized_corrected.to_periodogram(method='bls', period=period_grid, frequency_factor=500);
+    blsorig = binned_lc.to_periodogram(method='bls', period=period_grid, frequency_factor=700);
     origplanet_b_period = blsorig.period_at_max_power
     detectorig = abs((origplanet_b_period.value/period)-round(origplanet_b_period.value/period))
 
@@ -61,11 +62,8 @@ def injectplanet(arg):
 
     #print(f'detectval={detect}')
     accept_thresh=0.05
-    if (detectorig < accept_thresh) & (bls.max_power <= blsorig.max_power):
-        found = 0 #"False"
-    elif (detectorig < accept_thresh) & (bls.max_power > blsorig.max_power):
-        found = 1 #"True"
-
+    if detectorig < accept_thresh:
+        found = 0
     elif detect < accept_thresh:
         found = 1 #"True"
     else:
@@ -95,17 +93,22 @@ def injectplanet(arg):
 
 
 
-def vary_paramsmult(func, normalized_corrected, df, stellar_radius=1.325, trials=10000, num_processes=1):
-    
+def vary_paramsmult(func, input_lc, df, stellar_radius=1.325, trials=10000, num_processes=1):
     t0 = time.time()
-    with mp.Pool(num_processes,maxtasksperchild=10) as pool:
+    binned_lc = input_lc
+    def init():
+        global binned_lc
+        binned_lc = input_lc
+    
+    with mp.Pool(num_processes,initializer=init,maxtasksperchild=10) as pool:
+        binned_lc.scatter()
         #print(output_table['depth'])
         rad_min = 0.02115/stellar_radius #now in R_hoststar
         rad_max = 0.2/stellar_radius #now in R_hoststar
 
         depths = np.random.uniform(rad_min, rad_max, trials)  # random transit depths to inject
-        midtimes = np.random.uniform(min(normalized_corrected.time.value), max(normalized_corrected.time.value), trials)  # mid-transit times to inject if you want
-        periods = np.random.uniform(0.3,18,trials) # periods to inject
+        midtimes = np.random.uniform(min(binned_lc.time.value), max(binned_lc.time.value), trials)  # mid-transit times to inject if you want
+        periods = np.random.uniform(0.4,18,trials) # periods to inject
         
         df['depths'] = depths
         df['midtimes'] = midtimes
@@ -130,7 +133,3 @@ def vary_paramsmult(func, normalized_corrected, df, stellar_radius=1.325, trials
     print(f'Finished in {total}s')
     return df
 
-
-
-output_table2 = pd.DataFrame()
-output_table2 = vary_paramsmult(injectplanet,lcbin, output_table2, stellar_radius=0.994, trials=10000, num_processes=32)
