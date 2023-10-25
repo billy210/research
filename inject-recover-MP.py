@@ -133,3 +133,5 @@ def vary_paramsmult(func, input_lc, df, stellar_radius=1.325, trials=10000, num_
     print(f'Finished in {total}s')
     return df
 
+#output_table_currents3 = pd.DataFrame()
+#output_table_currents3 = vary_paramsmult(injectplanettest,s3lcbin, output_table_currents3, stellar_radius=0.681, trials=1, num_processes=128)
