@@ -386,14 +386,12 @@ def vary_paramsmult(func, star, df,stellar_radius=1.325, trials=10000, num_proce
         ##noinject.scatter()
         #print(output_table['depth'])
         #rad_min = 0.02115/stellar_radius #now in R_hoststar
-        ####rad_min = 0.0616576/stellar_radius #now in R_hoststar for a 0.6 Jupiter radii planet
-        rad_min = 0.14/stellar_radius #now in R_hoststar for a 0.6 Jupiter radii planet
+        rad_min = 0.0616576/stellar_radius #now in R_hoststar for a 0.6 Jupiter radii planet
         rad_max = 0.2/stellar_radius #now in R_hoststar for a 2 Jupiter radii planet
 
         depths = np.random.uniform(rad_min, rad_max, trials)  # random transit depths to inject
         midtimes = np.random.uniform(min(noinject.time.value), max(noinject.time.value), trials)  # mid-transit times to inject if you want
-        ####periods = np.random.uniform(0.6,10,trials) # periods to inject
-        periods = np.random.uniform(0.6,5,trials) # periods to inject
+        periods = np.random.uniform(0.6,10,trials) # periods to inject
         
         df['depths'] = depths
         df['midtimes'] = midtimes
