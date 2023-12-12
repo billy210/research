@@ -60,7 +60,7 @@ def injectplanetbeforestitch(arg):
     params.t0 = row['midtimes']                   #time of inferior conjunction
     params.per =  row['periods']                 #orbital period
     params.rp = row['depths']                     #planet radius (in units of stellar radii)
-    stellar_radius = row['stellar_radius']
+    #stellar_radius = row['stellar_radius']
     semimaj = ((((7.496*(10**(-6)))*(period**2))**(1/3))*215.032)/stellar_radius #calc a based on period, and in terms of host star radius
     params.a = semimaj                    #semi-major axis (in units of stellar radii)
     params.inc = 89.                      #orbital inclination (in degrees)
@@ -274,7 +274,7 @@ def injectplanetbeforestitch(arg):
     #output_table['recover?'] = recover
 
     #return output_table
-    return Rplanet, Pinject, Pdetermine, recover
+    return Rplanet, Pinject, Pdetermine, recover 
 
 
 
@@ -396,7 +396,7 @@ def vary_paramsmult(func, star, df,stellar_radius=1.325, trials=10000, num_proce
         df['depths'] = depths
         df['midtimes'] = midtimes
         df['periods'] = periods
-        df['stellar_radius'] = stellar_radius
+        
         #print(df)
     
     # we need a sequence to pass pool.map; this line creates a generator (lazy iterator) of columns
@@ -410,11 +410,16 @@ def vary_paramsmult(func, star, df,stellar_radius=1.325, trials=10000, num_proce
         # return list of processed columns, concatenated together as a new dataframe
         #return pd.concat(results_list, axis=0)
         #print(results_list)
+        df['TIC']=tic
+        df['stellar_radius']=stellar_radius
+        df['Tmag']=Tmag
         df[['Rplanet','Pinject','Pdetermine','recover?']] = results_list
     t1 = time.time()
     total = t1-t0
     print(f'Finished in {total}s')
     return df
+
+
 
 
 
