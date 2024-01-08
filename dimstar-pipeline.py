@@ -491,7 +491,7 @@ for index, row in sagstreammore.iterrows():
 
 
 
-sagstreammore.to_csv('/blue/jasondittmann/wschap/streams/sagittarius/cleanedlk/resulttable.csv')
+sagstreammore.to_csv('/orange/jasondittmann/wschap/streams/sagittarius/cleanedlk/resulttable.csv')
 t1 = time.time()
 total = t1-t0
 totalmin = total/60
