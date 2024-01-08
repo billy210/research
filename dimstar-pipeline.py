@@ -350,109 +350,47 @@ for index, row in sagstreammore.iterrows():
             
             
             #lets search for periodic signals
-            
-            period = np.linspace(1, 18, 50000)
-            periodogram = lcbin.to_periodogram(method='bls', period=period, frequency_factor=500);
-            
+            period = np.linspace(0.6, 10, 25000)
+            periodogram = lcbin.to_periodogram(method='bls', period=period, frequency_factor=700);
+            #ppmval = lcbin.estimate_cdpp()
+
             planet_b_period = periodogram.period_at_max_power
             planet_b_t0 = periodogram.transit_time_at_max_power
             planet_b_dur = periodogram.duration_at_max_power
-            #ppmval = lcbin.estimate_cdpp()
-
-
-            if (planet_b_period.value > 13.4) & (planet_b_period.value <14.0):
-                print('masking out the TESS period')
-
-                # Create a cadence mask using the BLS parameters
-                planet_b_mask = periodogram.get_transit_mask(period=planet_b_period,
-                                                     transit_time=planet_b_t0,
-                                                     duration=planet_b_dur)
-
-
-                masked_lc = stitching[~planet_b_mask]
-
-
-                period = np.linspace(1, 18, 50000)
-                periodogram = masked_lc.to_periodogram(method='bls', period=period, frequency_factor=500);
-                #ppmval = lcbin.estimate_cdpp()
-                fig,axes = plt.subplots(2,2, figsize=(15,10))
-
-                ax1 = masked_lc.scatter(ax=axes[0,0],color='black')
-                ax1.set_title(f'Light Curve of TIC {tic}')
-                ax2 = periodogram.plot(ax=axes[0,1],color='black')
-                ax2.set_title(f'Periodigram of TIC {tic}')
-                #plt.savefig(f'/blue/sarahballard/wschap/ariadne-results/mpfigures/{ticnum}.pdf')
-
-                planet_b_period = periodogram.period_at_max_power
-                planet_b_t0 = periodogram.transit_time_at_max_power
-                planet_b_dur = periodogram.duration_at_max_power
-
-                ax3 = masked_lc.fold(period=planet_b_period, epoch_time=planet_b_t0).scatter(ax=axes[1,0],s=12)
-
-                ax3.set_title(f'TIC {tic} folded at {planet_b_period:.2f}')
-                ax3.set_xlim(-0.75, 0.75);
-
-
-                # Create a BLS model using the BLS parameters and plot resulting transit fit
-
-
-                planet_b_model = periodogram.get_transit_model(period=planet_b_period,
-                                                       transit_time=planet_b_t0,
-                                                       duration=planet_b_dur)
-
-
-                ax4 = masked_lc.fold(planet_b_period, planet_b_t0).scatter(ax=axes[1,1],s=12)
-                planet_b_model.fold(planet_b_period, planet_b_t0).plot(ax=axes[1,1], c='r', lw=2)
-                ax4.set_xlim(-0.2, 0.2);
-
-                #print(f'period of {planet_b_period}')
-                #print(f'transit duration of {planet_b_dur}')
-
-                fig.tight_layout()
-                plt.savefig(f'/blue/jasondittmann/wschap/streams/sagittarius/cleanedlk/{tic}-reduced_lc.jpg',bbox_inches='tight')
-                progress=[(index+1)/surveysize]
-                outtable['progress']=progress
-                outtable.to_csv('/blue/jasondittmann/wschap/streams/sagittarius/cleanedlk/progress.csv')
-
-
-            else:
-                print(f'period of {planet_b_period} not TESS period')
-                
-                fig,axes = plt.subplots(2,2, figsize=(15,10))
-
-                ax1 = lcbin.scatter(ax=axes[0,0],color='black')
-                ax1.set_title(f'Light Curve of TIC {tic}')
-                ax2 = periodogram.plot(ax=axes[0,1],color='black')
-                ax2.set_title(f'Periodigram of TIC {tic}')
 
 
 
-                ax3 = lcbin.fold(period=planet_b_period, epoch_time=planet_b_t0).scatter(ax=axes[1,0],s=12)
+            fig,axes = plt.subplots(2,2, figsize=(15,10))
 
-                ax3.set_title(f'TIC {tic} folded at {planet_b_period:.2f}')
-                ax3.set_xlim(-0.75, 0.75);
+            ax1 = lcbin.scatter(ax=axes[0,0],color='black')
+            ax1.set_title(f'Light Curve of TIC {tic}')
+            ax2 = periodogram.plot(ax=axes[0,1],color='black')
+            ax2.set_title(f'Periodigram of TIC {tic}')
 
+            ax3 = lcbin.fold(period=planet_b_period, epoch_time=planet_b_t0).scatter(ax=axes[1,0],s=12)
 
-                planet_b_model = periodogram.get_transit_model(period=planet_b_period,
-                                                       transit_time=planet_b_t0,
-                                                       duration=planet_b_dur)
-
-                ax4 = lcbin.fold(planet_b_period, planet_b_t0).scatter(ax=axes[1,1],s=12)
-                planet_b_model.fold(planet_b_period, planet_b_t0).plot(ax=axes[1,1], c='r', lw=2)
-                ax4.set_xlim(-0.2, 0.2);
-                
-                fig.tight_layout()
-                plt.savefig(f'/blue/jasondittmann/wschap/streams/sagittarius/cleanedlk/{tic}-reduced_lc.jpg',bbox_inches='tight')
-                progress=[(index+1)/surveysize]
-                outtable['progress']=progress
-                outtable.to_csv('/blue/jasondittmann/wschap/streams/sagittarius/cleanedlk/progress.csv')
+            ax3.set_title(f'TIC {tic} folded at {planet_b_period:.2f}')
+            ax3.set_xlim(-0.75, 0.75);
 
 
+            planet_b_model = periodogram.get_transit_model(period=planet_b_period,
+                                                   transit_time=planet_b_t0,
+                                                   duration=planet_b_dur)
 
-            #find the calculate transit duration
+            ax4 = lcbin.fold(planet_b_period, planet_b_t0).scatter(ax=axes[1,1],s=12)
+            planet_b_model.fold(planet_b_period, planet_b_t0).plot(ax=axes[1,1], c='r', lw=2)
+            ax4.set_xlim(-0.2, 0.2);
+            fig.tight_layout()
+            plt.savefig(f'/orange/jasondittmann/wschap/streams/sagittarius/cleanedlk/{tic}-reduced_lc_plot.jpg',bbox_inches='tight')
+            progress=[(index+1)/surveysize]
+            outtable['progress']=progress
+            outtable.to_csv('/orange/jasondittmann/wschap/streams/sagittarius/cleanedlk/progress.csv')
+
+
+
+            #find the calculated transit duration
             calcduration = planet_b_dur
             calhrduration = planet_b_dur.value*24*u.hr
-            #print(f'calculated duration is {calcduration}, or {calhrduration}')
             print(f'calculated duration is {calhrduration}, for TIC {tic}')
 
 
@@ -461,7 +399,7 @@ for index, row in sagstreammore.iterrows():
 
             periodcalc = planet_b_period #days (we use the periodogram period)
             impact_param = 0.00 #equator cross (longest transit length)
-            stellar_radius = Rstar #taken from catalog, in Rsol
+            #stellar_radius = Rstar #taken from catalog, in Rsol
             semimaj = ((((7.496*(10**(-6)))*(periodcalc.value**2))**(1/3))*215.032)/stellar_radius #calc a based on period, and in terms of host star radius (a/R* au)
             scaled_planet_radius = np.sqrt(planet_b_model['flux'].min()) #Rp/R*
 
@@ -470,6 +408,7 @@ for index, row in sagstreammore.iterrows():
 
             #print(f'Expected  duration is {expectduration}, or {expectdurhour}')
             #print(f'Expected duration in hrs {expectdurhour}')
+            #print(f'Calculated duration in hrs {calhrduration}')
             sagstreammore.loc[index,'found_period'] = periodcalc.value
             sagstreammore.loc[index,'expected_dur_hr'] = expectdurhour.value
             sagstreammore.loc[index,'calc_dur_hr'] = calhrduration.value
@@ -480,6 +419,45 @@ for index, row in sagstreammore.iterrows():
             else:
                 print(f'this is a bit large')
                 sagstreammore.loc[index,'dur_vet'] = 0
+
+
+            #Now we should get an idea of planet radius while we have a depth
+            trandepth = planet_b_model['flux'].min()
+            #print(f'Recovered Transit Depth = {trandepth}')
+            sagstreammore.loc[index,'Depth'] = trandepth
+            Rplanet = (np.sqrt(1-trandepth)*stellar_radius)* 9.73116 #in Rjupiter
+            sagstreammore.loc[index,'Rplanet'] = Rplanet
+            #print(f'planet radius = {Rplanet}')
+
+            #####################
+            # check for harmonics
+            #####################
+            blsdf = pd.DataFrame()
+            blsdf['power'] = periodogram.power.value
+            blsdf['period'] = periodogram.period.value
+            blsdf['harmonic_math'] = (periodogram.period_at_max_power)/(blsdf['period'])
+            blsdf = blsdf.sort_values(by='power', ascending=False).reset_index()
+            blsdfshort = blsdf[0:10]
+            peakpower = blsdf['power'][0]
+            print(f'peak power = {peakpower}')
+            sagstreammore.loc[index,'peakpower'] = peakpower
+
+            counter=0
+            for index2, row2 in blsdfshort.iterrows():
+                if abs(((row2['harmonic_math']-2)/2)) <= 0.05:
+                    #print('2x harmonic')
+                    row2['harmonic_check'] = abs(((row2['harmonic_math']-2)/2))
+                    counter = counter+1
+                elif abs(((row2['harmonic_math']-0.5)/0.5)) <= 0.05:
+                    #print('0.5 harmonic')
+                    row2['harmonic_check'] = abs(((row2['harmonic_math']-0.5)/0.5))
+                    counter = counter+1
+                else:
+                    #print('might be noise')
+                    row2['harmonic_check'] = 999
+                    pass
+            sagstreammore.loc[index,'n_harmonics'] = counter
+            print(f'number of possible harmonics = {counter}')
     
     #if all else fails, just move on to the next star for now, troubleshoot this at a later time 
     except:
